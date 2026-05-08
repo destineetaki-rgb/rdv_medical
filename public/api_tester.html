@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RDV Medical — API Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(59,130,246,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(6,182,212,0.06) 0%, transparent 50%);
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(17,24,39,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .logo-text h1 {
+    font-size: 18px; font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .logo-text span { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  .status-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; color: var(--success);
+    font-family: var(--font-mono);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* LAYOUT */
+  .container { display: flex; height: calc(100vh - 73px); }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 20px 0;
+  }
+
+  .sidebar-section { margin-bottom: 8px; }
+
+  .sidebar-title {
+    padding: 8px 20px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .endpoint-btn {
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text); font-family: var(--font-display);
+    font-size: 13px; text-align: left;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+
+  .endpoint-btn:hover { background: var(--surface2); }
+  .endpoint-btn.active {
+    background: rgba(59,130,246,0.1);
+    border-left-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .method-tag {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px;
+    min-width: 46px; text-align: center;
+  }
+
+  .get    { background: rgba(16,185,129,0.2); color: var(--success); }
+  .post   { background: rgba(59,130,246,0.2); color: var(--accent); }
+  .put    { background: rgba(245,158,11,0.2); color: var(--warning); }
+  .delete { background: rgba(239,68,68,0.2);  color: var(--danger); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOKEN BAR */
+  .token-bar {
+    padding: 12px 30px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .token-bar label {
+    font-size: 11px; color: var(--text-muted);
+    font-family: var(--font-mono); white-space: nowrap;
+  }
+
+  .token-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--accent2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+  }
+
+  .token-input:focus { border-color: var(--accent); }
+
+  .clear-token {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--danger);
+    padding: 7px 14px; border-radius: 8px;
+    cursor: pointer; font-size: 12px;
+    font-family: var(--font-mono);
+    transition: all 0.2s;
+  }
+  .clear-token:hover { background: rgba(239,68,68,0.2); }
+
+  /* REQUEST PANEL */
+  .request-panel {
+    flex: 1; overflow-y: auto;
+    padding: 30px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .panel-title {
+    font-size: 20px; font-weight: 800;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .url-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: var(--font-mono);
+    font-size: 13px; color: var(--text-muted);
+  }
+
+  .url-display span { color: var(--accent2); }
+
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+
+  .form-label {
+    font-size: 12px; font-weight: 600;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .form-select option { background: var(--surface); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .send-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px;
+    padding: 14px 30px;
+    color: white; font-family: var(--font-display);
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+    align-self: flex-start;
+  }
+
+  .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.4); }
+  .send-btn:active { transform: translateY(0); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* RESPONSE */
+  .response-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .response-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .response-title {
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .response-status {
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px;
+  }
+
+  .status-ok    { background: rgba(16,185,129,0.2); color: var(--success); }
+  .status-error { background: rgba(239,68,68,0.2);  color: var(--danger); }
+  .status-warn  { background: rgba(245,158,11,0.2); color: var(--warning); }
+
+  .response-body {
+    padding: 18px;
+    font-family: var(--font-mono);
+    font-size: 12px; line-height: 1.8;
+    color: #a5f3fc;
+    max-height: 350px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-all;
+    background: #050a12;
+  }
+
+  .response-body.empty { color: var(--text-muted); font-style: italic; }
+
+  .loading { display: none; align-items: center; gap: 10px; color: var(--accent); font-family: var(--font-mono); font-size: 13px; }
+  .loading.show { display: flex; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* WELCOME */
+  .welcome {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; gap: 16px; color: var(--text-muted);
+    text-align: center; padding: 40px;
+  }
+
+  .welcome-icon { font-size: 60px; }
+  .welcome h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+  .welcome p { font-size: 14px; max-width: 400px; line-height: 1.6; }
+
+  .info-note {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 12px; color: var(--accent);
+    font-family: var(--font-mono);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .divider { height: 1px; background: var(--border); margin: 4px 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏥</div>
+    <div class="logo-text">
+      <h1>RDV Medical API</h1>
+      <span>Interactive API Tester — Laravel 9 + Sanctum</span>
+    </div>
+  </div>
+  <div class="status-badge">
+    <div class="status-dot"></div>
+    http://127.0.0.1:8000
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">🔐 Authentification</div>
+      <button class="endpoint-btn active" onclick="selectEndpoint('login')">
+        <span class="method-tag post">POST</span> Login
+      </button>
+      <button class="endpoint-btn" onclick="selectEndpoint('logout')">
+        <span class="method-tag post">POST</span> Logout
+      </button>
+      <button class="endpoint-btn" onclick="selectEndpoint('me')">
+        <span class="method-tag get">GET</span> Mon Profil
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">📅 Rendez-vous</div>
+      <button class="endpoint-btn" onclick="selectEndpoint('rdv-list')">
+        <span class="method-tag get">GET</span> Liste RDV
+      </button>
+      <button class="endpoint-btn" onclick="selectEndpoint('rdv-create')">
+        <span class="method-tag post">POST</span> Créer RDV
+      </button>
+      <button class="endpoint-btn" onclick="selectEndpoint('rdv-show')">
+        <span class="method-tag get">GET</span> Détail RDV
+      </button>
+      <button class="endpoint-btn" onclick="selectEndpoint('rdv-update')">
+        <span class="method-tag put">PUT</span> Modifier RDV
+      </button>
+      <button class="endpoint-btn" onclick="selectEndpoint('rdv-delete')">
+        <span class="method-tag delete">DELETE</span> Annuler RDV
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">👨‍⚕️ Médecins</div>
+      <button class="endpoint-btn" onclick="selectEndpoint('medecins')">
+        <span class="method-tag get">GET</span> Liste Médecins
+      </button>
+    </div>
+
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOKEN BAR -->
+    <div class="token-bar">
+      <label>🔑 BEARER TOKEN :</label>
+      <input type="text" id="token" class="token-input" placeholder="Connectez-vous d'abord pour obtenir votre token..." />
+      <button class="clear-token" onclick="clearToken()">Effacer</button>
+    </div>
+
+    <!-- REQUEST PANEL -->
+    <div class="request-panel" id="requestPanel">
+
+      <!-- WELCOME -->
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🚀</div>
+        <h2>Bienvenue sur l'API Tester</h2>
+        <p>Commencez par vous connecter avec l'endpoint <strong>Login</strong> pour obtenir votre token d'authentification.</p>
+        <div class="info-note">POST /api/login → token → endpoints protégés</div>
+      </div>
+
+      <!-- FORM AREA (hidden by default) -->
+      <div id="formArea" style="display:none; flex-direction:column; gap:20px;">
+
+        <div class="panel-title">
+          <span id="formMethodBadge" class="method-tag post">POST</span>
+          <span id="formTitle">Login</span>
+        </div>
+
+        <div class="url-display">
+          <span>http://127.0.0.1:8000</span><span id="formUrl">/api/login</span>
+        </div>
+
+        <div id="formFields"></div>
+
+        <div style="display:flex; align-items:center; gap:16px;">
+          <button class="send-btn" id="sendBtn" onclick="sendRequest()">
+            ▶ Envoyer la requête
+          </button>
+          <div class="loading" id="loading">
+            <div class="spinner"></div> Envoi en cours...
+          </div>
+        </div>
+
+        <div class="response-section">
+          <div class="response-header">
+            <span class="response-title">📥 Réponse</span>
+            <span id="responseStatus" class="response-status status-warn">En attente</span>
+          </div>
+          <div class="response-body empty" id="responseBody">
+            Cliquez sur "Envoyer la requête" pour voir la réponse...
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = 'http://127.0.0.1:8000/api';
+let currentEndpoint = 'login';
+
+const endpoints = {
+  'login': {
+    method: 'POST', url: '/login', title: 'Connexion',
+    auth: false,
+    fields: [
+      { id: 'email', label: 'Email', type: 'email', placeholder: 'admin@rdv.com', value: 'admin@rdv.com' },
+      { id: 'password', label: 'Mot de passe', type: 'password', placeholder: '••••••••', value: 'password' }
+    ]
+  },
+  'logout': {
+    method: 'POST', url: '/logout', title: 'Déconnexion',
+    auth: true, fields: []
+  },
+  'me': {
+    method: 'GET', url: '/me', title: 'Mon Profil',
+    auth: true, fields: []
+  },
+  'rdv-list': {
+    method: 'GET', url: '/rendezvous', title: 'Liste des Rendez-vous',
+    auth: true, fields: []
+  },
+  'rdv-create': {
+    method: 'POST', url: '/rendezvous', title: 'Créer un Rendez-vous',
+    auth: true,
+    fields: [
+      { id: 'medecin_id', label: 'ID Médecin', type: 'number', placeholder: '1', value: '1' },
+      { id: 'date', label: 'Date', type: 'date', placeholder: '', value: '' },
+      { id: 'heure', label: 'Heure (HH:MM)', type: 'time', placeholder: '09:00', value: '09:00' },
+      { id: 'motif', label: 'Motif', type: 'textarea', placeholder: 'Motif de consultation...', value: 'Consultation generale' }
+    ]
+  },
+  'rdv-show': {
+    method: 'GET', url: '/rendezvous/{id}', title: 'Détail d\'un Rendez-vous',
+    auth: true,
+    fields: [
+      { id: 'id', label: 'ID du Rendez-vous', type: 'number', placeholder: '1', value: '1' }
+    ]
+  },
+  'rdv-update': {
+    method: 'PUT', url: '/rendezvous/{id}', title: 'Modifier un Rendez-vous',
+    auth: true,
+    fields: [
+      { id: 'id', label: 'ID du Rendez-vous', type: 'number', placeholder: '1', value: '1' },
+      { id: 'heure', label: 'Nouvelle Heure (HH:MM)', type: 'time', placeholder: '10:00', value: '10:00' },
+      { id: 'motif', label: 'Nouveau Motif', type: 'textarea', placeholder: 'Motif...', value: 'Consultation modifiee' }
+    ]
+  },
+  'rdv-delete': {
+    method: 'DELETE', url: '/rendezvous/{id}', title: 'Annuler un Rendez-vous',
+    auth: true,
+    fields: [
+      { id: 'id', label: 'ID du Rendez-vous', type: 'number', placeholder: '1', value: '1' }
+    ]
+  },
+  'medecins': {
+    method: 'GET', url: '/medecins', title: 'Liste des Médecins',
+    auth: true, fields: []
+  }
+};
+
+function selectEndpoint(key) {
+  currentEndpoint = key;
+  document.querySelectorAll('.endpoint-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const ep = endpoints[key];
+  document.getElementById('welcome').style.display = 'none';
+  const fa = document.getElementById('formArea');
+  fa.style.display = 'flex';
+
+  const methodColors = { GET: 'get', POST: 'post', PUT: 'put', DELETE: 'delete' };
+  const badge = document.getElementById('formMethodBadge');
+  badge.textContent = ep.method;
+  badge.className = 'method-tag ' + methodColors[ep.method];
+
+  document.getElementById('formTitle').textContent = ep.title;
+  document.getElementById('formUrl').textContent = ep.url;
+
+  // Build fields
+  const container = document.getElementById('formFields');
+  container.innerHTML = '';
+
+  if (ep.fields.length === 0) {
+    if (ep.auth) {
+      container.innerHTML = `<div class="info-note">✅ Cette requête utilise votre token Bearer — aucun paramètre requis.</div>`;
+    }
+    return;
+  }
+
+  const grid = ep.fields.length >= 2 ? 'form-grid' : '';
+  const wrapper = document.createElement('div');
+  wrapper.className = grid;
+
+  ep.fields.forEach(f => {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    if (f.type === 'textarea') {
+      group.innerHTML = `
+        <label class="form-label">${f.label}</label>
+        <textarea id="field_${f.id}" class="form-textarea" placeholder="${f.placeholder}">${f.value}</textarea>`;
+    } else {
+      group.innerHTML = `
+        <label class="form-label">${f.label}</label>
+        <input type="${f.type}" id="field_${f.id}" class="form-input" placeholder="${f.placeholder}" value="${f.value}">`;
+    }
+    wrapper.appendChild(group);
+  });
+
+  container.appendChild(wrapper);
+
+  // Reset response
+  document.getElementById('responseBody').textContent = 'Cliquez sur "Envoyer la requête" pour voir la réponse...';
+  document.getElementById('responseBody').className = 'response-body empty';
+  document.getElementById('responseStatus').textContent = 'En attente';
+  document.getElementById('responseStatus').className = 'response-status status-warn';
+}
+
+async function sendRequest() {
+  const ep = endpoints[currentEndpoint];
+  const token = document.getElementById('token').value.trim();
+
+  if (ep.auth && !token) {
+    alert('⚠️ Vous devez d\'abord vous connecter pour obtenir un token !');
+    selectEndpoint('login');
+    return;
+  }
+
+  // Get field values
+  const values = {};
+  ep.fields.forEach(f => {
+    const el = document.getElementById('field_' + f.id);
+    if (el) values[f.id] = el.value;
+  });
+
+  // Build URL
+  let url = BASE + ep.url;
+  if (values.id) url = url.replace('{id}', values.id);
+
+  // Build body
+  let body = null;
+  if (['POST', 'PUT', 'PATCH'].includes(ep.method)) {
+    const bodyData = {};
+    ep.fields.forEach(f => {
+      if (f.id !== 'id' && values[f.id]) bodyData[f.id] = values[f.id];
+    });
+    body = JSON.stringify(bodyData);
+  }
+
+  // Headers
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+
+  // UI loading
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('responseBody').textContent = 'Envoi en cours...';
+  document.getElementById('responseBody').className = 'response-body empty';
+
+  try {
+    const res = await fetch(url, { method: ep.method, headers, body });
+    const data = await res.json();
+
+    const statusEl = document.getElementById('responseStatus');
+    const bodyEl = document.getElementById('responseBody');
+
+    statusEl.textContent = res.status + ' ' + res.statusText;
+
+    if (res.ok) {
+      statusEl.className = 'response-status status-ok';
+      bodyEl.className = 'response-body';
+
+      // Auto-save token on login
+      if (currentEndpoint === 'login' && data.token) {
+        document.getElementById('token').value = data.token;
+      }
+    } else {
+      statusEl.className = 'response-status status-error';
+      bodyEl.className = 'response-body';
+    }
+
+    bodyEl.textContent = JSON.stringify(data, null, 2);
+
+  } catch (err) {
+    document.getElementById('responseStatus').textContent = 'ERREUR RÉSEAU';
+    document.getElementById('responseStatus').className = 'response-status status-error';
+    document.getElementById('responseBody').textContent = '❌ Impossible de joindre le serveur.\n\nAssurez-vous que Laravel tourne sur http://127.0.0.1:8000\n\nCommande : php artisan serve\n\nErreur : ' + err.message;
+    document.getElementById('responseBody').className = 'response-body';
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('loading').classList.remove('show');
+}
+
+function clearToken() {
+  document.getElementById('token').value = '';
+}
+
+// Set today's date for RDV create
+window.addEventListener('load', () => {
+  selectEndpoint('login');
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dateStr = tomorrow.toISOString().split('T')[0];
+  setTimeout(() => {
+    const dateField = document.getElementById('field_date');
+    if (dateField) dateField.value = dateStr;
+  }, 100);
+});
+</script>
+</body>
+</html>
